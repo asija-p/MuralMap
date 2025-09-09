@@ -58,7 +58,7 @@ fun LoginPage(modifier: Modifier = Modifier, navController: NavController, authV
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(value= email, onValueChange = {
-            email = it
+            email = it.trim()
         },
             label = {
                 Text(text="Email")
@@ -68,10 +68,10 @@ fun LoginPage(modifier: Modifier = Modifier, navController: NavController, authV
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(value= password, onValueChange = {
-            password = it
+            password = it.trim()
         },
             label = {
-                Text(text="Email")
+                Text(text="Password")
             }
         )
 
