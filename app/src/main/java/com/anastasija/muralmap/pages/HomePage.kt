@@ -12,8 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.anastasija.muralmap.AuthState
-import com.anastasija.muralmap.AuthViewModel
+import com.anastasija.muralmap.auth.AuthViewModel
+import com.anastasija.muralmap.auth.AuthState
 
 @Composable
 fun HomePage(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel) {

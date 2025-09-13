@@ -7,10 +7,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,21 +23,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.anastasija.muralmap.AuthState
-import com.anastasija.muralmap.AuthViewModel
+import com.anastasija.muralmap.auth.AuthState
+import com.anastasija.muralmap.auth.AuthViewModel
 
 @Composable
 fun SignupPage(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel) {
 
-    var email by remember {
-        mutableStateOf("")
-    }
-    var password by remember {
-        mutableStateOf("")
-    }
+    var email by remember { mutableStateOf("") }
+    var fullName by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
@@ -75,6 +76,35 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, auth
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
+            value= fullName,
+            onValueChange = { fullName = it },
+            label = { Text(text="Full name") },
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Next
+            ),
+            singleLine = true,
+
+
+            )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value= phoneNumber,
+            onValueChange = { phoneNumber = it },
+            label = { Text(text="Phone") },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Phone,
+                imeAction = ImeAction.Next
+            ),
+            singleLine = true,
+
+
+            )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
             value= password,
             onValueChange = { password = it },
             label = { Text(text="Password") },
@@ -82,14 +112,26 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, auth
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
             ),
-            singleLine=true
+            singleLine=true,
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        imageVector = image,
+                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
+                    )
+                }
+            }
 
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
             email.trim()
             password.trim()
-            authViewModel.signup(email, password)
+            authViewModel.signup(email, password, fullName, phoneNumber)
         }, enabled = authState.value!=AuthState.Loading
         ) {
             Text(text= "Create account")

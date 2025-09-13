@@ -1,14 +1,18 @@
-package com.anastasija.muralmap
+package com.anastasija.muralmap.auth
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.google.firebase.Firebase
+import com.anastasija.muralmap.auth.AuthState
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class AuthViewModel : ViewModel() {
 
-    private val auth : FirebaseAuth = FirebaseAuth.getInstance()
+    private var auth: FirebaseAuth = Firebase.auth
 
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
@@ -47,7 +51,7 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    fun signup(email: String, password: String) {
+    fun signup(email: String, password: String, fullName: String, phoneNumber: String) {
 
         if(email.isEmpty() || password.isEmpty()) {
             _authState.value=AuthState.Error("Email or password can't be empty")
@@ -59,7 +63,31 @@ class AuthViewModel : ViewModel() {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener{task->
                 if(task.isSuccessful) {
-                    _authState.value=AuthState.Authenticated
+                    val user = auth.currentUser
+                    val uid = user?.uid
+
+                    if (uid != null) {
+                        val db = Firebase.firestore;
+
+                        val userMap = hashMapOf(
+                            "uid" to uid,
+                            "email" to email,
+                            "fullName" to fullName,
+                            "phoneNumber" to phoneNumber
+                        )
+
+                        db.collection("users")
+                            .document(uid)
+                            .set(userMap)
+                            .addOnSuccessListener {
+                                _authState.value = AuthState.Authenticated
+                            }
+                            .addOnFailureListener { e ->
+                                _authState.value = AuthState.Error("Firestore error: ${e.message}")
+                            }
+                    } else {
+                        _authState.value = AuthState.Error("No UID found")
+                    }
                 }
                 else {
                     _authState.value=AuthState.Error(task.exception?.message?:"Something went wrong")
@@ -72,11 +100,4 @@ class AuthViewModel : ViewModel() {
         auth.signOut()
         _authState.value = AuthState.Unauthenticated
     }
-}
-
-sealed class AuthState{
-    object  Authenticated : AuthState()
-    object Unauthenticated : AuthState()
-    object Loading : AuthState()
-    data class Error(val message : String) : AuthState()
 }
