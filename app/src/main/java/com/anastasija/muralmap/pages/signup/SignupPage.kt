@@ -198,7 +198,16 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, auth
             },
             enabled = authState.value != AuthState.Loading
         ) {
-            Text(text = "Create account")
+            if (authState.value == AuthState.Loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = Color.White
+                )
+            }
+            else {
+                Text(text = "Create account")
+            }
         }
 
         Spacer(modifier = Modifier.height(8.dp))

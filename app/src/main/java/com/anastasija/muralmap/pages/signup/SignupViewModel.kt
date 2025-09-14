@@ -43,9 +43,9 @@ class SignupViewModel {
         val data = baos.toByteArray()
 
         val cloudName = "du2p6m04l"
-        val uploadPreset = "MuralMap" // TODO: replace
+        val uploadPreset = "MuralMap"
         val url = "https://api.cloudinary.com/v1_1/$cloudName/image/upload"
-        
+
         val client = OkHttpClient()
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
