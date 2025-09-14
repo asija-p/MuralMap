@@ -1,11 +1,23 @@
-package com.anastasija.muralmap.pages
+package com.anastasija.muralmap.pages.signup
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -20,6 +32,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,6 +43,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.anastasija.muralmap.auth.AuthState
 import com.anastasija.muralmap.auth.AuthViewModel
 
@@ -39,9 +55,18 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, auth
     var phoneNumber by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var profileImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
+    val signupViewModel = remember { SignupViewModel() }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { signupViewModel.onPhotoCaptured(it) }
+    }
+
     
     LaunchedEffect(authState.value) {
         when(authState.value) {
@@ -59,6 +84,25 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, auth
         Text(text = "Signup Page", fontSize = 32.sp)
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = { galleryLauncher.launch("image/*") }) {
+            Text(text = "Pick a picture")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = "Selected Picture")
+
+        signupViewModel.uiState.photoUri?.let { uri ->
+            Image(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .border(2.dp, Color.Gray, CircleShape),
+                painter = rememberAsyncImagePainter(uri),
+                contentDescription = "Profile picture",
+                contentScale = ContentScale.Crop
+            )
+        }
 
         OutlinedTextField(
             value= email,
@@ -127,6 +171,7 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, auth
         )
 
         Spacer(modifier = Modifier.height(16.dp))
+
 
         Button(onClick = {
             email.trim()

@@ -8,7 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import com.anastasija.muralmap.auth.AuthViewModel
 import com.anastasija.muralmap.pages.HomePage
 import com.anastasija.muralmap.pages.LoginPage
-import com.anastasija.muralmap.pages.SignupPage
+import com.anastasija.muralmap.pages.signup.SignupPage
 
 @Composable
 fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
