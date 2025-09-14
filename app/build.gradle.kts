@@ -60,14 +60,20 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
 
-    implementation ("com.google.firebase:firebase-analytics")
-    implementation (platform("com.google.firebase:firebase-bom:31.1.0"))
-    implementation ("com.google.firebase:firebase-analytics-ktx")
-    implementation ("com.google.firebase:firebase-auth-ktx")
-    implementation ("com.google.firebase:firebase-firestore-ktx")
-    implementation ("com.google.firebase:firebase-messaging-ktx")
-    implementation ("com.google.firebase:firebase-database-ktx")
+// Firebase BOM (manages versions for all Firebase libs)
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+
+// Firebase libraries
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx")
+    implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.firebase:firebase-database-ktx")
 
     implementation("androidx.compose.material:material-icons-extended")
     implementation("io.coil-kt:coil-compose:2.4.0")
+
+    implementation("com.cloudinary:cloudinary-android:2.3.1")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

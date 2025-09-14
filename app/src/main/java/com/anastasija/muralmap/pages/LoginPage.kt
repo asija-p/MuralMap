@@ -95,6 +95,8 @@ fun LoginPage(modifier: Modifier = Modifier, navController: NavController, authV
 
         )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         Button(onClick = {
             authViewModel.login(email, password)
         },
@@ -102,8 +104,6 @@ fun LoginPage(modifier: Modifier = Modifier, navController: NavController, authV
         ) {
             Text(text= "Login")
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         TextButton(onClick = {
             navController.navigate("signup")

@@ -51,7 +51,7 @@ class AuthViewModel : ViewModel() {
             }
     }
 
-    fun signup(email: String, password: String, fullName: String, phoneNumber: String) {
+    fun signup(email: String, password: String, fullName: String, phoneNumber: String, profileImageUrl: String?) {
 
         if(email.isEmpty() || password.isEmpty()) {
             _authState.value=AuthState.Error("Email or password can't be empty")
@@ -73,7 +73,8 @@ class AuthViewModel : ViewModel() {
                             "uid" to uid,
                             "email" to email,
                             "fullName" to fullName,
-                            "phoneNumber" to phoneNumber
+                            "phoneNumber" to phoneNumber,
+                            "profileImageUrl" to profileImageUrl
                         )
 
                         db.collection("users")

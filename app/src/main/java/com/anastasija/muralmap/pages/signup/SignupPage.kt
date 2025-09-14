@@ -1,5 +1,6 @@
 package com.anastasija.muralmap.pages.signup
 
+import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
@@ -49,7 +50,10 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.anastasija.muralmap.auth.AuthState
 import com.anastasija.muralmap.auth.AuthViewModel
-import java.io.File
+import com.anastasija.muralmap.components.ImagePicker
+import android.os.Handler
+import android.os.Looper
+
 
 @Composable
 fun SignupPage(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel) {
@@ -64,41 +68,8 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, auth
     val context = LocalContext.current
     val signupViewModel = remember { SignupViewModel() }
 
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { signupViewModel.onPhotoCaptured(it) }
-    }
 
-    var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success) {
-            cameraImageUri?.let { signupViewModel.onPhotoCaptured(it) }
-        }
-    }
 
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            // Permission granted → launch camera
-            val photoFile = File.createTempFile("profile_", ".jpg", context.cacheDir).apply {
-                deleteOnExit()
-            }
-            val uri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.provider",
-                photoFile
-            )
-            cameraImageUri = uri
-            cameraLauncher.launch(uri)
-        } else {
-            Toast.makeText(context, "Camera permission denied", Toast.LENGTH_SHORT).show()
-        }
-    }
-    
     LaunchedEffect(authState.value) {
         when(authState.value) {
             is AuthState.Authenticated -> navController.navigate("home")
@@ -116,41 +87,6 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, auth
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row {
-            Button(onClick = {
-                if (ContextCompat.checkSelfPermission(
-                        context,
-                        android.Manifest.permission.CAMERA
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-
-                    val photoFile = File.createTempFile("profile_", ".jpg", context.cacheDir).apply {
-                        deleteOnExit()
-                    }
-                    val uri = FileProvider.getUriForFile(
-                        context,
-                        "${context.packageName}.provider",
-                        photoFile
-                    )
-                    cameraImageUri = uri
-                    cameraLauncher.launch(uri)
-                } else {
-                    cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
-                }
-            }) {
-                Text("Take a photo")
-            }
-
-            Spacer(Modifier.width(16.dp))
-
-            Button(onClick = { galleryLauncher.launch("image/*") }) {
-                Text("Pick a picture")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(text = "Selected Picture")
-
         signupViewModel.uiState.photoUri?.let { uri ->
             Image(
                 modifier = Modifier
@@ -162,6 +98,15 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, auth
                 contentScale = ContentScale.Crop
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        ImagePicker(
+            selectedImage = signupViewModel.uiState.photoUri,
+            onImagePicked = { uri -> signupViewModel.onPhotoCaptured(uri) }
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
             value= email,
@@ -231,14 +176,29 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, auth
 
         Spacer(modifier = Modifier.height(16.dp))
 
-
-        Button(onClick = {
-            email.trim()
-            password.trim()
-            authViewModel.signup(email, password, fullName, phoneNumber)
-        }, enabled = authState.value!=AuthState.Loading
+        Button(
+            onClick = {
+                signupViewModel.uploadPicture(context) { imageUrl ->
+                    if (imageUrl != null) {
+                        Handler(Looper.getMainLooper()).post {
+                            authViewModel.signup(
+                                email.trim(),
+                                password.trim(),
+                                fullName.trim(),
+                                phoneNumber.trim(),
+                                imageUrl
+                            )
+                        }
+                    } else {
+                        Handler(Looper.getMainLooper()).post {
+                            Toast.makeText(context, "Image upload failed", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            },
+            enabled = authState.value != AuthState.Loading
         ) {
-            Text(text= "Create account")
+            Text(text = "Create account")
         }
 
         Spacer(modifier = Modifier.height(8.dp))
