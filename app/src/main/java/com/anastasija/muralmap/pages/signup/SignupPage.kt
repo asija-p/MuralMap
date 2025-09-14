@@ -1,5 +1,6 @@
 package com.anastasija.muralmap.pages.signup
 
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -42,10 +43,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.anastasija.muralmap.auth.AuthState
 import com.anastasija.muralmap.auth.AuthViewModel
+import java.io.File
 
 @Composable
 fun SignupPage(modifier: Modifier = Modifier, navController: NavController, authViewModel: AuthViewModel) {
@@ -55,7 +59,6 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, auth
     var phoneNumber by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var profileImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
@@ -67,6 +70,34 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, auth
         uri?.let { signupViewModel.onPhotoCaptured(it) }
     }
 
+    var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            cameraImageUri?.let { signupViewModel.onPhotoCaptured(it) }
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permission granted → launch camera
+            val photoFile = File.createTempFile("profile_", ".jpg", context.cacheDir).apply {
+                deleteOnExit()
+            }
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                photoFile
+            )
+            cameraImageUri = uri
+            cameraLauncher.launch(uri)
+        } else {
+            Toast.makeText(context, "Camera permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
     
     LaunchedEffect(authState.value) {
         when(authState.value) {
@@ -85,8 +116,36 @@ fun SignupPage(modifier: Modifier = Modifier, navController: NavController, auth
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { galleryLauncher.launch("image/*") }) {
-            Text(text = "Pick a picture")
+        Row {
+            Button(onClick = {
+                if (ContextCompat.checkSelfPermission(
+                        context,
+                        android.Manifest.permission.CAMERA
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+
+                    val photoFile = File.createTempFile("profile_", ".jpg", context.cacheDir).apply {
+                        deleteOnExit()
+                    }
+                    val uri = FileProvider.getUriForFile(
+                        context,
+                        "${context.packageName}.provider",
+                        photoFile
+                    )
+                    cameraImageUri = uri
+                    cameraLauncher.launch(uri)
+                } else {
+                    cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                }
+            }) {
+                Text("Take a photo")
+            }
+
+            Spacer(Modifier.width(16.dp))
+
+            Button(onClick = { galleryLauncher.launch("image/*") }) {
+                Text("Pick a picture")
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
