@@ -14,19 +14,14 @@ class AuthViewModel : ViewModel() {
 
     private var auth: FirebaseAuth = Firebase.auth
 
-    private val _authState = MutableLiveData<AuthState>()
+    private val _authState = MutableLiveData<AuthState>(AuthState.Loading)
     val authState: LiveData<AuthState> = _authState
 
     init {
-        checkAuthStatus()
-    }
-
-    fun checkAuthStatus() {
-        if(auth.currentUser==null) {
-            _authState.postValue(AuthState.Unauthenticated)
-        }
-        else{
-            _authState.postValue(AuthState.Authenticated)
+        if (auth.currentUser == null) {
+            _authState.value = AuthState.Unauthenticated
+        } else {
+            _authState.value = AuthState.Authenticated
         }
     }
 

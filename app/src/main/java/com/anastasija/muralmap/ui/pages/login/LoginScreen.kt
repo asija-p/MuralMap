@@ -54,7 +54,12 @@ fun LoginScreen(
 
     LaunchedEffect(authState.value) {
         when (authState.value) {
-            is AuthState.Authenticated -> navController.navigate("home")
+            is AuthState.Authenticated -> {
+                navController.navigate("home") {
+                    popUpTo("login") { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
             is AuthState.Error -> {
                 val msg = (authState.value as AuthState.Error).message
                 loginViewModel.setError(msg)

@@ -20,13 +20,17 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController, authVi
 
     val authState = authViewModel.authState.observeAsState()
 
-    LaunchedEffect(authState) {
-        when(authState.value) {
-            is AuthState.Unauthenticated -> navController.navigate("login")
+    LaunchedEffect(authState.value) {
+        when (authState.value) {
+            is AuthState.Unauthenticated -> {
+                navController.navigate("login") {
+                    popUpTo("home") { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
             else -> Unit
         }
     }
-
     Column(
         modifier=modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -36,7 +40,7 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController, authVi
 
         TextButton(onClick = {
             authViewModel.signout()
-            navController.navigate("home")
+            navController.navigate("login")
         }) {
             Text(text = "Sign out")
         }
