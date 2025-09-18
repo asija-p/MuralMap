@@ -40,9 +40,14 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController, authVi
 
         TextButton(onClick = {
             authViewModel.signout()
-            navController.navigate("login")
         }) {
             Text(text = "Sign out")
+        }
+
+        TextButton(onClick = {
+            navController.navigate("map")
+        }) {
+            Text(text = "Open Map")
         }
     }
 }

@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import com.anastasija.muralmap.ui.auth.AuthViewModel
 import com.anastasija.muralmap.ui.pages.HomePage
 import com.anastasija.muralmap.ui.pages.login.LoginScreen
+import com.anastasija.muralmap.ui.pages.map.MapScreen
 import com.anastasija.muralmap.ui.pages.signup.SignupScreen
 
 @Composable
@@ -25,6 +26,10 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel)
 
         composable("home") {
             HomePage(modifier, navController, authViewModel)
+        }
+
+        composable("map") {
+            MapScreen()
         }
     })
 }
