@@ -1,9 +1,9 @@
-package com.anastasija.muralmap.auth
+package com.anastasija.muralmap.ui.auth
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.anastasija.muralmap.auth.AuthState
+import com.anastasija.muralmap.ui.auth.AuthState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -23,29 +23,29 @@ class AuthViewModel : ViewModel() {
 
     fun checkAuthStatus() {
         if(auth.currentUser==null) {
-            _authState.value = AuthState.Unauthenticated
+            _authState.postValue(AuthState.Unauthenticated)
         }
         else{
-            _authState.value = AuthState.Authenticated
+            _authState.postValue(AuthState.Authenticated)
         }
     }
 
     fun login(email: String, password: String) {
 
         if(email.isEmpty() || password.isEmpty()) {
-            _authState.value=AuthState.Error("Email or password can't be empty")
+            _authState.postValue(AuthState.Error("Email or password can't be empty"))
             return
 
         }
 
-        _authState.value = AuthState.Loading
+        _authState.postValue(AuthState.Loading)
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener{task->
                 if(task.isSuccessful) {
-                    _authState.value=AuthState.Authenticated
+                    _authState.postValue(AuthState.Authenticated)
                 }
                 else {
-                    _authState.value=AuthState.Error(task.exception?.message?:"Something went wrong")
+                    _authState.postValue(AuthState.Error(task.exception?.message?:"Something went wrong"))
                 }
 
             }
@@ -53,16 +53,16 @@ class AuthViewModel : ViewModel() {
 
     fun signup(email: String, password: String, fullName: String, phoneNumber: String, profileImageUrl: String?) {
 
-        if(email.isEmpty() || password.isEmpty()) {
-            _authState.value=AuthState.Error("Email or password can't be empty")
+        if (email.isEmpty() || password.isEmpty()) {
+            _authState.postValue(AuthState.Error("Email or password can't be empty"))
             return
 
         }
 
-        _authState.value = AuthState.Loading
+        _authState.postValue(AuthState.Loading)
         auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener{task->
-                if(task.isSuccessful) {
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
                     val user = auth.currentUser
                     val uid = user?.uid
 
@@ -81,24 +81,28 @@ class AuthViewModel : ViewModel() {
                             .document(uid)
                             .set(userMap)
                             .addOnSuccessListener {
-                                _authState.value = AuthState.Authenticated
+                                _authState.postValue(AuthState.Authenticated)
                             }
                             .addOnFailureListener { e ->
-                                _authState.value = AuthState.Error("Firestore error: ${e.message}")
+                                _authState.postValue(AuthState.Error("Firestore error: ${e.message}"))
                             }
                     } else {
-                        _authState.value = AuthState.Error("No UID found")
+                        _authState.postValue(AuthState.Error("No UID found"))
                     }
-                }
-                else {
-                    _authState.value=AuthState.Error(task.exception?.message?:"Something went wrong")
-                }
+                } else {
+                    _authState.postValue(
+                        AuthState.Error(
+                            task.exception?.message ?: "Something went wrong"
+                        )
+                    )
 
+                }
             }
     }
 
-    fun signout() {
-        auth.signOut()
-        _authState.value = AuthState.Unauthenticated
-    }
+        fun signout() {
+            auth.signOut()
+            _authState.postValue(AuthState.Unauthenticated);
+        }
+
 }

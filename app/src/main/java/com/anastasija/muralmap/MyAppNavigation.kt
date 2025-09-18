@@ -5,10 +5,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.anastasija.muralmap.auth.AuthViewModel
-import com.anastasija.muralmap.pages.HomePage
-import com.anastasija.muralmap.pages.LoginPage
-import com.anastasija.muralmap.pages.signup.SignupPage
+import com.anastasija.muralmap.ui.auth.AuthViewModel
+import com.anastasija.muralmap.ui.pages.HomePage
+import com.anastasija.muralmap.ui.pages.login.LoginScreen
+import com.anastasija.muralmap.ui.pages.signup.SignupScreen
 
 @Composable
 fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel) {
@@ -16,11 +16,11 @@ fun MyAppNavigation(modifier: Modifier = Modifier, authViewModel: AuthViewModel)
 
     NavHost(navController = navController, startDestination = "login", builder = {
        composable("login"){
-           LoginPage(modifier, navController, authViewModel)
+           LoginScreen(modifier, navController, authViewModel)
        }
 
         composable("signup") {
-            SignupPage(modifier, navController, authViewModel)
+            SignupScreen(modifier, navController, authViewModel)
         }
 
         composable("home") {

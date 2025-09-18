@@ -1,4 +1,4 @@
-package com.anastasija.muralmap.auth
+package com.anastasija.muralmap.ui.auth
 
 sealed class AuthState {
     object Authenticated : AuthState()

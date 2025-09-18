@@ -20,7 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import com.anastasija.muralmap.pages.signup.SignupViewModel
+import com.anastasija.muralmap.ui.pages.signup.SignupViewModel
 import java.io.File
 
 @Composable
