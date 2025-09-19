@@ -22,38 +22,41 @@ fun MapScreen(
 ) {
     LaunchedEffect(Unit) { mapViewModel.start() }
     val uiState = mapViewModel.uiState.collectAsState()
+    val ui = mapViewModel.uiState.collectAsState()
 
-    // default position (Niš)
-    val defaultLatLng = LatLng(43.321445, 21.896104)
-
-    val userLatLng = if (uiState.value.latitude != null && uiState.value.longitude != null) {
-        LatLng(uiState.value.latitude!!, uiState.value.longitude!!)
-    } else {
-        defaultLatLng
+    val userLatLng = ui.value.latitude?.let { lat ->
+        ui.value.longitude?.let { lng -> LatLng(lat, lng) }
     }
 
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(userLatLng, 15f)
-    }
+    val cameraPositionState = rememberCameraPositionState()
+
 
     LaunchedEffect(userLatLng) {
-        cameraPositionState.animate(
-            update = com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(
-                userLatLng,
-                15f
-            )
-        )
+        userLatLng?.let {
+            if (cameraPositionState.position.zoom == 0f) {
+                cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
+            } else {
+                cameraPositionState.animate(
+                    com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(it, 15f)
+                )
+            }
+        }
+    }
+
+    if (userLatLng == null) {
+        androidx.compose.foundation.layout.Box(Modifier.fillMaxSize())
+        return
     }
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
-        properties = MapProperties(mapType = MapType.NORMAL),
+        properties = MapProperties(
+            mapType = MapType.NORMAL,
+            isMyLocationEnabled = true
+        ),
         uiSettings = MapUiSettings(),
         cameraPositionState = cameraPositionState
     ) {
-        Marker(
-            state = MarkerState(position = userLatLng),
-            title = "You are here"
-        )
+        Marker(state = MarkerState(position = userLatLng), title = "You are here")
     }
 }
