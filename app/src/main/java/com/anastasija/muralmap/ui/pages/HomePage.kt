@@ -3,6 +3,7 @@ package com.anastasija.muralmap.ui.pages
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,16 +39,17 @@ fun HomePage(modifier: Modifier = Modifier, navController: NavController, authVi
     ) {
         Text(text="Home Page", fontSize=32.sp)
 
-        TextButton(onClick = {
+        Button(onClick = {
             authViewModel.signout()
         }) {
             Text(text = "Sign out")
         }
 
-        TextButton(onClick = {
+        Button(onClick = {
             navController.navigate("map")
         }) {
             Text(text = "Open Map")
         }
+
     }
 }
