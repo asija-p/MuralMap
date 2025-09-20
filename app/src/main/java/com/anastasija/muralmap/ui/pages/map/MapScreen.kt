@@ -1,62 +1,90 @@
 package com.anastasija.muralmap.ui.pages.map
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MapType
-import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.*
 
 @Composable
 fun MapScreen(
     mapViewModel: MapViewModel = viewModel()
 ) {
     LaunchedEffect(Unit) { mapViewModel.start() }
-    val uiState = mapViewModel.uiState.collectAsState()
-    val ui = mapViewModel.uiState.collectAsState()
 
-    val userLatLng = ui.value.latitude?.let { lat ->
-        ui.value.longitude?.let { lng -> LatLng(lat, lng) }
+    val ui by mapViewModel.uiState.collectAsState()
+
+    val userLatLng: LatLng? = ui.latitude?.let { lat ->
+        ui.longitude?.let { lng -> LatLng(lat, lng) }
     }
 
-    val cameraPositionState = rememberCameraPositionState()
+    var mapLoaded by rememberSaveable { mutableStateOf(false) }
 
+    val cameraPositionState = rememberCameraPositionState()
 
     LaunchedEffect(userLatLng) {
         userLatLng?.let {
             if (cameraPositionState.position.zoom == 0f) {
                 cameraPositionState.position = CameraPosition.fromLatLngZoom(it, 15f)
             } else {
-                cameraPositionState.animate(
-                    com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(it, 15f)
-                )
+                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(it, 15f))
             }
         }
     }
 
-    if (userLatLng == null) {
-        androidx.compose.foundation.layout.Box(Modifier.fillMaxSize())
-        return
-    }
+    Box(Modifier.fillMaxSize()) {
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            properties = MapProperties(
+                mapType = MapType.NORMAL,
+                isMyLocationEnabled = true
+            ),
+            uiSettings = MapUiSettings(),
+            cameraPositionState = cameraPositionState,
+            onMapLoaded = { mapLoaded = true }
+        ) {
+            userLatLng?.let {
+                Marker(
+                    state = MarkerState(position = it),
+                    title = "You are here"
+                )
+            }
+        }
 
-    GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        properties = MapProperties(
-            mapType = MapType.NORMAL,
-            isMyLocationEnabled = true
-        ),
-        uiSettings = MapUiSettings(),
-        cameraPositionState = cameraPositionState
-    ) {
-        Marker(state = MarkerState(position = userLatLng), title = "You are here")
+        val showLoading = userLatLng == null || !mapLoaded
+        if (showLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.05f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator()
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = if (userLatLng == null) "Please turn on Location to show your position."
+                        else "Loading map…",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
     }
 }
